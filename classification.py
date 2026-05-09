@@ -6,8 +6,7 @@ import logging
 from typing import Tuple
 import numpy as np
 import cv2
-from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split
@@ -51,7 +50,7 @@ class TrafficSignClassifier:
     def __init__(self):
         self.feature_extractor = FeatureExtractor()
         self.scaler = StandardScaler()
-        self.model = SVC(probability=True)
+        self.model = GaussianNB()          # Changed from SVC to GaussianNB
         self.encoder = LabelEncoder()
         self.is_trained = False
 
@@ -72,9 +71,9 @@ class TrafficSignClassifier:
 
         return {
             "accuracy": accuracy_score(y_val, preds),
-            "precision": precision_score(y_val, preds, average='weighted'),
-            "recall": recall_score(y_val, preds, average='weighted'),
-            "f1": f1_score(y_val, preds, average='weighted')
+            "precision": precision_score(y_val, preds, average='weighted', zero_division=0),
+            "recall": recall_score(y_val, preds, average='weighted', zero_division=0),
+            "f1": f1_score(y_val, preds, average='weighted', zero_division=0)
         }
 
     def predict(self, images):
@@ -85,9 +84,40 @@ class TrafficSignClassifier:
         X = self.scaler.transform(X)
 
         preds = self.model.predict(X)
-        probs = self.model.predict_proba(X)
+        probs = self.model.predict_proba(X)   # GaussianNB supports this natively
 
         return preds, np.max(probs, axis=1)
+
+    def save(self, path: str, class_names: list = None):
+        """Save the trained classifier (model + scaler + encoder + class names) to disk."""
+        data = {
+            "model":       self.model,
+            "scaler":      self.scaler,
+            "encoder":     self.encoder,
+            "class_names": class_names or [],
+            "is_trained":  self.is_trained,
+        }
+        with open(path, "wb") as f:
+            pickle.dump(data, f)
+        logger.info(f"Classifier saved → {path}")
+
+    @classmethod
+    def load(cls, path: str):
+        """Load a previously saved classifier from disk.
+
+        Returns:
+            (classifier, class_names)  — ready to call .predict() on.
+        """
+        with open(path, "rb") as f:
+            data = pickle.load(f)
+        clf = cls()
+        clf.model      = data["model"]
+        clf.scaler     = data["scaler"]
+        clf.encoder    = data["encoder"]
+        clf.is_trained = data["is_trained"]
+        class_names    = data.get("class_names", [])
+        logger.info(f"Classifier loaded ← {path}")
+        return clf, class_names
 
 def demo():
     images = []
