@@ -4,7 +4,6 @@ from PIL import Image
 import pandas as pd
 from torchvision import transforms
 
-# Member 2 integration
 from preprocessing import preprocess_pil
 
 def process_img(path, target_format, target_size, augment):
@@ -22,8 +21,6 @@ def process_img(path, target_format, target_size, augment):
     transform = transforms.Compose(transform_list)
     img = Image.open(path).convert(target_format)
 
-    # Member 2:
-    # denoise + CLAHE contrast enhancement
     img = preprocess_pil(img)
     return transform(img)
 
