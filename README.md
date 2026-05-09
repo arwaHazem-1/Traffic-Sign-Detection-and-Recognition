@@ -5,7 +5,11 @@ https://www.kaggle.com/datasets/tuanai/traffic-signs-dataset
 ( o.o )
  > ^ <
 
+to train the model
+python evaluation.py --image_dir "data/train" --labels "data/labels.csv" --output_dir "eval_results"
 
-python evaluation.py --image_dir "C:\Users\youss\Downloads\dataset\archivedataset\DATA" --labels "C:\Users\youss\Downloads\dataset\archivedataset\labels.csv" --output_dir eval_result
+to test on one image
+python predict.py --image "data/test/10/010_1_0012_1_j.png" --model "eval_results/classifier.pkl"
 
-python predict.py --image "C:\Users\youss\Downloads\dataset\archivedataset\DATA\14\00001.ppm" --model "eval_result\classifier.pkl"
+Visualize Pipeline
+python main.py --image "data/test/6/006_1_0003_1_j.png" --output_dir "main_results"
